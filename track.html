@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local Event Discovery</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              light: '#f3e8ff',
+              DEFAULT: '#a855f7',
+              dark: '#6b21a8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen font-sans transition-colors">
+  <div class="max-w-6xl mx-auto py-12 px-6">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-5xl font-extrabold text-indigo-700 dark:text-indigo-200 drop-shadow">Discover Local Events</h1>
+      <button onclick="toggleDarkMode()" class="ml-4 px-4 py-2 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 font-semibold shadow hover:shadow-md transition">Toggle Dark Mode</button>
+    </div>
+
+    <div class="flex flex-col md:flex-row md:space-x-6 mb-10">
+      <input type="text" id="searchInput" class="flex-1 p-4 rounded-xl shadow-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Search by keyword...">
+      <select id="categoryFilter" class="flex-1 p-4 rounded-xl shadow-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white mt-4 md:mt-0 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+        <option value="">All Categories</option>
+        <option value="Music">Music</option>
+        <option value="Art">Art</option>
+        <option value="Tech">Tech</option>
+        <option value="Health">Health</option>
+      </select>
+    </div>
+
+    <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-6">Add New Event</h2>
+    <form id="eventForm" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-12">
+      <input type="text" id="eventTitle" class="p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white" placeholder="Event Title" required>
+      <select id="eventCategory" class="p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white" required>
+        <option value="">Category</option>
+        <option value="Music">Music</option>
+        <option value="Art">Art</option>
+        <option value="Tech">Tech</option>
+        <option value="Health">Health</option>
+      </select>
+      <input type="text" id="eventLocation" class="p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white" placeholder="Location" required>
+      <input type="date" id="eventDate" class="p-4 rounded-xl shadow-md border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white" required>
+      <button type="submit" class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold p-4 rounded-xl shadow-lg hover:from-indigo-600 hover:to-purple-600 transition">Add Event</button>
+    </form>
+
+    <div id="eventList" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+  </div>
+
+  <script>
+    let events = [
+      { title: "Live Jazz Night", category: "Music", location: "Downtown Club", date: "2025-06-01" },
+      { title: "Art & Wine Fest", category: "Art", location: "Riverside Park", date: "2025-06-03" },
+      { title: "Tech Innovators Meetup", category: "Tech", location: "Tech Hub", date: "2025-06-02" },
+      { title: "Morning Yoga", category: "Health", location: "City Square", date: "2025-06-04" }
+    ];
+
+    function renderEvents(filter = "", keyword = "") {
+      const list = document.getElementById("eventList");
+      list.innerHTML = "";
+
+      const filtered = events.filter(e => {
+        return (!filter || e.category === filter) &&
+               (!keyword || e.title.toLowerCase().includes(keyword.toLowerCase()));
+      });
+
+      filtered.forEach(event => {
+        const card = document.createElement("div");
+        const borderColor = {
+          'Music': 'border-blue-400',
+          'Art': 'border-pink-400',
+          'Tech': 'border-green-400',
+          'Health': 'border-orange-400'
+        }[event.category] || 'border-gray-300';
+
+        card.className = `bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border-l-8 ${borderColor} transition hover:shadow-2xl`;
+        card.innerHTML = `
+          <div class="flex items-start gap-4">
+            <div class="flex-1">
+              <h3 class="text-2xl font-bold mb-1 text-indigo-800 dark:text-indigo-300">${event.title}</h3>
+              <p class="text-md text-gray-700 dark:text-gray-300"><strong>Category:</strong> ${event.category}</p>
+              <p class="text-md text-gray-700 dark:text-gray-300"><strong>Location:</strong> ${event.location}</p>
+              <p class="text-md text-gray-700 dark:text-gray-300"><strong>Date:</strong> ${event.date}</p>
+            </div>
+            <div class="flex flex-col space-y-2">
+              <button onclick="deleteEvent('${event.title}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm">Delete</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    document.getElementById("searchInput").addEventListener("input", e => {
+      renderEvents(document.getElementById("categoryFilter").value, e.target.value);
+    });
+
+    document.getElementById("categoryFilter").addEventListener("change", e => {
+      renderEvents(e.target.value, document.getElementById("searchInput").value);
+    });
+
+    document.getElementById("eventForm").addEventListener("submit", e => {
+      e.preventDefault();
+
+      const title = document.getElementById("eventTitle").value;
+      const category = document.getElementById("eventCategory").value;
+      const location = document.getElementById("eventLocation").value;
+      const date = document.getElementById("eventDate").value;
+
+      events.push({ title, category, location, date });
+      renderEvents();
+      e.target.reset();
+    });
+
+    function deleteEvent(title)  {
+      events = events.filter(event => event.title !== title);
+      renderEvents();
+    }
+
+    
+
+    function editEvent(title) {
+  const event = events.find(e => e.title === title);
+  if (event) {
+    document.getElementById("eventTitle").value = event.title;
+    document.getElementById("eventCategory").value = event.category;
+    document.getElementById("eventLocation").value = event.location;
+    document.getElementById("eventDate").value = event.date;
+
+    // Delete by all matching fields (not just title) to avoid conflicts
+    events = events.filter(e =>
+      !(e.title === event.title &&
+        e.category === event.category &&
+        e.location === event.location &&
+        e.date === event.date)
+    );
+
+    renderEvents();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark');
+    }
+
+    renderEvents();
+  </script>
+</body>
+</html>
